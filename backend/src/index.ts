@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import kycRoutes from "./routes/kyc.routes.js";
-
+import verificationRoutes from "./routes/verification.routes.js";
 
 dotenv.config();
 
@@ -14,6 +14,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/kyc", kycRoutes);
+app.use("/api/verify", verificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("CredVault API running");

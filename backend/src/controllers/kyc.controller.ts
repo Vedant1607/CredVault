@@ -5,6 +5,7 @@ import {
   completeKYC,
 } from "../services/kyc.service.js";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
+import { createAttestation } from "../services/attestation.service.js";
 
 // Start KYC
 export const startKYC = (req: AuthRequest, res: Response) => {
@@ -36,9 +37,11 @@ export const getStatus = (req: Request, res: Response) => {
 };
 
 // Simulate completion (for testing)
-export const simulateKYC = (req: Request, res: Response) => {
-  const { walletAddress } = req.body;
-  console.log("simulate called", req.body);
+export const simulateKYC = async (req: AuthRequest, res: Response) => {
+  const walletAddress = req.user?.walletAddress;
+  if (!walletAddress) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   if (typeof walletAddress !== "string") {
     return res.status(400).json({ error: "Invalid walletAddress" });
@@ -50,5 +53,10 @@ export const simulateKYC = (req: Request, res: Response) => {
     return res.status(404).json({ error: "KYC session not found" });
   }
 
-  res.json(session);
+  const attestation = await createAttestation(walletAddress);
+
+  res.json({
+    session,
+    attestation
+  });
 };

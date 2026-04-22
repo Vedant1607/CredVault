@@ -17,7 +17,10 @@ export const startKYC = async (req: AuthRequest, res: Response) => {
 
   const result = await createKYCSession(walletAddress);
 
-  res.json(result);
+  res.json({
+    success: true,
+    data: result,
+  });
 };
 
 // Get status
@@ -44,7 +47,10 @@ export const simulateKYC = async (req: AuthRequest, res: Response) => {
   }
 
   if (typeof walletAddress !== "string") {
-    return res.status(400).json({ error: "Invalid walletAddress" });
+    return res.status(400).json({
+      success: false,
+      error: "Invalid walletAddress",
+    });
   }
 
   const session = completeKYC(walletAddress);

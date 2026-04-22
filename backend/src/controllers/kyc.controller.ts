@@ -8,14 +8,14 @@ import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { createAttestation } from "../services/attestation.service.js";
 
 // Start KYC
-export const startKYC = (req: AuthRequest, res: Response) => {
+export const startKYC = async (req: AuthRequest, res: Response) => {
   const walletAddress = req.user?.walletAddress;
 
   if (!walletAddress) {
     return res.status(400).json({ error: "walletAddress required" });
   }
 
-  const result = createKYCSession(walletAddress);
+  const result = await createKYCSession(walletAddress);
 
   res.json(result);
 };

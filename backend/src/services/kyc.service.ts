@@ -1,15 +1,19 @@
-import type { KYCSession } from "../types/kyc.types.js";
+import { prisma } from "../utils/prisma.js";
 
-const kycStore = new Map<string, KYCSession>();
+export const createKYCSession = async (walletAddress: string) => {
+  // create user if not exists
+  await prisma.user.upsert({
+    where: { walletAddress },
+    update: {},
+    create: { walletAddress },
+  });
 
-export const createKYCSession = (walletAddress: string) => {
-  const session: KYCSession = {
-    id: Math.random().toString(36).substring(2),
-    walletAddress,
-    status: "pending",
-  };
-
-  kycStore.set(walletAddress, session);
+  const session = await prisma.kYCSession.create({
+    data: {
+      walletAddress,
+      status: "pending",
+    },
+  });
 
   return {
     session,
@@ -17,18 +21,30 @@ export const createKYCSession = (walletAddress: string) => {
   };
 };
 
-export const getKYCStatus = (walletAddress: string) => {
-  return kycStore.get(walletAddress);
+export const getKYCStatus = async (walletAddress: string) => {
+  return prisma.kYCSession.findFirst({
+    where: { walletAddress },
+    orderBy: { createdAt: "desc" },
+  });
 };
 
-export const completeKYC = (walletAddress: string) => {
-  const session = kycStore.get(walletAddress);
+export const completeKYC = async (walletAddress: string) => {
+  const session = await prisma.kYCSession.findFirst({
+    where: { walletAddress },
+    orderBy: { createdAt: "desc" },
+  });
 
-  if (session) {
-    session.status = "approved";
-    kycStore.set(walletAddress, session);
-  }
-  console.log("session before update:", session);
+  if (!session) return null;
 
-  return session;
+  await prisma.kYCSession.update({
+    where: { id: session.id },
+    data: { status: "approved" },
+  });
+
+  await prisma.user.update({
+    where: { walletAddress },
+    data: { kycStatus: "approved" },
+  });
+
+  return { ...session, status: "approved" };
 };
